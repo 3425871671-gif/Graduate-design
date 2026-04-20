@@ -986,12 +986,12 @@
 
     <!-- 悬浮按钮 -->
     <div class="floating-action">
-        <button onclick="switchView('developing')" class="w-14 h-14 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform group relative">
+        <button onclick="quickPractice()" class="w-14 h-14 bg-gradient-to-r from-sky-500 to-blue-600 rounded-full shadow-2xl flex items-center justify-center text-white hover:scale-110 transition-transform group relative">
             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
             </svg>
             <span class="absolute right-full mr-3 bg-slate-800 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                快速练习
+                随机练习
             </span>
         </button>
     </div>
@@ -1218,7 +1218,7 @@
             }
         }
 
-        // ========== 登录处理 ==========
+        // ========== 登录处理（已修正：成功后清空文本框） ==========
         function handleLogin() {
             const username = document.getElementById('loginUsername').value.trim();
             const password = document.getElementById('loginPassword').value;
@@ -1230,16 +1230,21 @@
             
             const result = AuthManager.login(username, password);
             if (result.success) {
+                // 【安全】立即清空登录表单，防止信息残留
+                document.getElementById('loginUsername').value = '';
+                document.getElementById('loginPassword').value = '';
+                
                 showToast('✅', result.message);
                 updateAuthArea();
                 updateUserCenterInfo();
+                UserProgress.updateAccuracyDisplay(); // 刷新正确率
                 setTimeout(() => switchView('home'), 1000);
             } else {
                 showToast('❌', result.message);
             }
         }
 
-        // ========== 注册处理 ==========
+        // ========== 注册处理（已修正：成功后清空文本框） ==========
         function handleRegister() {
             const username = document.getElementById('registerUsername').value.trim();
             const password = document.getElementById('registerPassword').value;
@@ -1263,20 +1268,27 @@
             
             const result = AuthManager.register(username, password);
             if (result.success) {
+                // 【安全】立即清空注册表单，防止信息残留
+                document.getElementById('registerUsername').value = '';
+                document.getElementById('registerPassword').value = '';
+                document.getElementById('registerConfirm').value = '';
+                document.getElementById('agreeTerms').checked = false;
+                
                 showToast('✅', result.message);
                 updateAuthArea();
                 updateUserCenterInfo();
+                UserProgress.updateAccuracyDisplay(); // 刷新正确率
                 setTimeout(() => switchView('home'), 1000);
             } else {
                 showToast('❌', result.message);
             }
         }
 
-        // ========== 退出登录 ==========
+        // ========== 退出登录（已修正：退出后刷新正确率为 "--"） ==========
         function handleLogout() {
             if (confirm('确定要退出登录吗？您的做题记录将保留在本地。')) {
                 AuthManager.logout();
-                UserProgress.updateAccuracyDisplay();
+                UserProgress.updateAccuracyDisplay(); // 立即刷新为 "--"
                 updateAuthArea();
                 showToast('👋', '已成功退出登录');
                 setTimeout(() => switchView('home'), 1000);
@@ -1291,6 +1303,25 @@
                 document.getElementById('userCenterId').textContent = 'ID: IELTS_' + currentUser;
                 document.getElementById('userCenterAvatar').textContent = currentUser.charAt(0).toUpperCase();
             }
+        }
+
+        // ========== 快速练习：随机抽取一篇做题 ==========
+        function quickPractice() {
+            // 未登录则提示登录
+            if (!AuthManager.isLoggedIn()) {
+                showLoginModal();
+                return;
+            }
+            
+            // 从50篇文章中随机抽取一篇
+            const randomIndex = Math.floor(Math.random() * allArticles.length);
+            const article = allArticles[randomIndex];
+            
+            // 提示用户随机到了哪篇（可选，提升体验）
+            showToast('🎲', `随机抽取：${article.passage.substring(0, 20)}...`);
+            
+            // 直接进入测试
+            startTest(article.id);
         }
 
         // ========== BBC文章数据 ==========
@@ -2493,7 +2524,25 @@
             return allArticles.slice(start, end);
         }
 
+        // ========== 页面切换（已修正：离开登录/注册页时自动清空表单） ==========
         function switchView(view) {
+            // 【安全】只要目标不是登录/注册页，就立即清空所有认证表单
+            if (view !== 'auth') {
+                const loginUsername = document.getElementById('loginUsername');
+                const loginPassword = document.getElementById('loginPassword');
+                const registerUsername = document.getElementById('registerUsername');
+                const registerPassword = document.getElementById('registerPassword');
+                const registerConfirm = document.getElementById('registerConfirm');
+                const agreeTerms = document.getElementById('agreeTerms');
+
+                if (loginUsername) loginUsername.value = '';
+                if (loginPassword) loginPassword.value = '';
+                if (registerUsername) registerUsername.value = '';
+                if (registerPassword) registerPassword.value = '';
+                if (registerConfirm) registerConfirm.value = '';
+                if (agreeTerms) agreeTerms.checked = false;
+            }
+
             currentView = view;
             
             document.getElementById('home-view').classList.add('hidden');
@@ -2908,9 +2957,9 @@
             showToast('📝', `文字大小已调整为：${currentFontSize}`);
         }
 
-        // ========== 初始化 ==========
+        // ========== 初始化（已修正：页面加载时立即刷新正确率） ==========
         updateAuthArea();
-        UserProgress.updateAccuracyDisplay();
+        UserProgress.updateAccuracyDisplay(); // 确保未登录时显示 "--"，已登录时显示实际正确率
         renderContent();
 
         // 搜索功能
