@@ -511,6 +511,15 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+
+        /* 错题本样式 */
+        .error-card {
+            transition: all 0.3s ease;
+        }
+        .error-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
 <body class="pb-20">
@@ -546,7 +555,7 @@
                     <span>AI精讲</span>
                     <span class="px-1.5 py-0.5 bg-orange-100 text-orange-600 text-[10px] rounded-full font-bold">NEW</span>
                 </button>
-                <button onclick="switchView('developing')" id="nav-error" class="nav-tab px-2 py-1 text-slate-600 hover:text-sky-600 text-sm font-medium">
+                <button onclick="switchView('error-book')" id="nav-error" class="nav-tab px-2 py-1 text-slate-600 hover:text-sky-600 text-sm font-medium">
                     错题本
                 </button>
                 <button onclick="switchView('developing')" id="nav-favorite" class="nav-tab px-2 py-1 text-slate-600 hover:text-sky-600 text-sm font-medium">
@@ -577,7 +586,7 @@
                 AI精讲
                 <span class="px-1 bg-orange-100 text-orange-600 text-[8px] rounded">NEW</span>
             </button>
-            <button onclick="switchView('developing')" class="nav-tab px-3 py-1 text-xs text-slate-600 whitespace-nowrap">错题本</button>
+            <button onclick="switchView('error-book')" class="nav-tab px-3 py-1 text-xs text-slate-600 whitespace-nowrap">错题本</button>
             <button onclick="switchView('developing')" class="nav-tab px-3 py-1 text-xs text-slate-600 whitespace-nowrap">收藏夹</button>
             <button onclick="switchView('developing')" class="nav-tab px-3 py-1 text-xs text-slate-600 whitespace-nowrap">学习报告</button>
         </div>
@@ -637,13 +646,18 @@
                     </div>
                 </div>
 
-                <!-- 统计概览 - 已移除按钮样式 -->
+                <!-- 统计概览 -->
                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    <div class="glass-card rounded-xl p-4 text-center hover:shadow-lg transition-shadow" title="基于您所有做题记录计算">
+                    <!-- 平均正确率：点击跳转到错题本 -->
+                    <div class="glass-card rounded-xl p-4 text-center hover:shadow-lg transition-shadow cursor-pointer hover:bg-sky-50/50" 
+                         title="基于您所有做题记录计算" 
+                         onclick="switchView('error-book')">
                         <div class="text-2xl font-bold text-sky-600 mb-1" id="userAccuracy">--</div>
                         <div class="text-xs text-slate-500">平均正确率</div>
                         <div class="text-[10px] text-slate-400 mt-1" id="attemptCount">已完成 0 篇</div>
+                        <div class="mt-1.5 text-[10px] text-sky-400 opacity-0 hover:opacity-100 transition-opacity">点击查看错题</div>
                     </div>
+                    
                     <div class="glass-card rounded-xl p-4 text-center hover:shadow-lg transition-shadow">
                         <div class="text-2xl font-bold text-emerald-600 mb-1">50</div>
                         <div class="text-xs text-slate-500">BBC精选文章</div>
@@ -980,6 +994,42 @@
                 </div>
             </div>
 
+            <!-- 错题本界面 -->
+            <div id="error-book-view" class="hidden page-transition">
+                <div class="glass-card rounded-xl p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gradient-to-br from-rose-400 to-red-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h2 class="text-xl font-bold text-slate-800">错题本</h2>
+                                <p class="text-sm text-slate-500">记录你的薄弱环节，针对性提升</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="renderErrorBook()" class="px-4 py-2 bg-sky-50 text-sky-600 rounded-lg text-sm font-medium hover:bg-sky-100 transition-colors border border-sky-200 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                </svg>
+                                刷新
+                            </button>
+                            <button onclick="clearWrongAnswers()" class="px-4 py-2 bg-rose-50 text-rose-600 rounded-lg text-sm font-medium hover:bg-rose-100 transition-colors border border-rose-200 flex items-center gap-1">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                </svg>
+                                清空
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="errorBookList" class="space-y-4">
+                    <!-- 动态内容 -->
+                </div>
+            </div>
+
         </div>
 
     </div>
@@ -1143,6 +1193,49 @@
                 if (attemptElement) {
                     attemptElement.textContent = `已完成 ${attempts} 篇`;
                 }
+            }
+        };
+
+        // ========== 错题本管理（新增） ==========
+        let Wronganswer = [];
+
+        const WrongAnswerManager = {
+            getWrongAnswers() {
+                const data = localStorage.getItem('ielts_wrong_answers');
+                Wronganswer = data ? JSON.parse(data) : [];
+                return Wronganswer;
+            },
+            
+            saveWrongAnswer(articleId, articleTitle, question, userAnswerText) {
+                this.getWrongAnswers();
+                
+                const existingIndex = Wronganswer.findIndex(w => 
+                    w.articleId === articleId && w.questionNumber === question.number
+                );
+                
+                const record = {
+                    articleId,
+                    articleTitle,
+                    questionNumber: question.number,
+                    questionText: question.question,
+                    userAnswer: userAnswerText || '未作答',
+                    correctAnswer: question.answer,
+                    questionType: question.type,
+                    timestamp: new Date().toISOString()
+                };
+                
+                if (existingIndex >= 0) {
+                    Wronganswer[existingIndex] = record;
+                } else {
+                    Wronganswer.push(record);
+                }
+                
+                localStorage.setItem('ielts_wrong_answers', JSON.stringify(Wronganswer));
+            },
+            
+            clearWrongAnswers() {
+                Wronganswer = [];
+                localStorage.removeItem('ielts_wrong_answers');
             }
         };
 
@@ -2550,6 +2643,7 @@
             document.getElementById('test-view').classList.add('hidden');
             document.getElementById('user-view').classList.add('hidden');
             document.getElementById('auth-view').classList.add('hidden');
+            document.getElementById('error-book-view').classList.add('hidden');
             document.getElementById('banner-section').style.display = 'none';
             
             document.querySelectorAll('.nav-tab').forEach(tab => {
@@ -2568,6 +2662,10 @@
                 document.getElementById('user-view').classList.remove('hidden');
             } else if (view === 'auth') {
                 document.getElementById('auth-view').classList.remove('hidden');
+            } else if (view === 'error-book') {
+                document.getElementById('error-book-view').classList.remove('hidden');
+                document.getElementById('nav-error').classList.add('active');
+                renderErrorBook();
             } else {
                 document.getElementById('developing-view').classList.remove('hidden');
                 const navMap = {
@@ -2760,6 +2858,17 @@
                 
                 if (isCorrect) correct++;
                 card.classList.add(isCorrect ? 'correct' : 'incorrect');
+
+                // 【错题本】记录错题
+                if (!isCorrect) {
+                    let userAnswerText = userAnswer;
+                    if (q.type === 'choice') {
+                        userAnswerText = (userAnswer !== undefined && q.options[userAnswer]) ? q.options[userAnswer] : '未作答';
+                    } else if (!userAnswerText) {
+                        userAnswerText = '未作答';
+                    }
+                    WrongAnswerManager.saveWrongAnswer(currentTest.id, currentTest.passage, q, userAnswerText);
+                }
             });
             
             UserProgress.saveRecord(currentTest.id, correct, total);
@@ -2788,6 +2897,85 @@
             document.getElementById('submitBtn').classList.remove('opacity-50', 'cursor-not-allowed');
             
             switchView('home');
+        }
+
+        // ========== 错题本渲染 ==========
+        function renderErrorBook() {
+            WrongAnswerManager.getWrongAnswers();
+            const container = document.getElementById('errorBookList');
+            
+            if (Wronganswer.length === 0) {
+                container.innerHTML = `
+                    <div class="developing-page glass-card p-8 text-center" style="min-height: 40vh; background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);">
+                        <div class="text-6xl mb-4 relative z-10">📚</div>
+                        <h3 class="text-2xl font-bold text-slate-700 mb-2 relative z-10">暂无错题记录</h3>
+                        <p class="text-slate-500 mb-6 relative z-10">太棒了！你还没有做错任何题目，继续保持！</p>
+                        <button onclick="switchView('home')" class="btn-primary px-6 py-3 rounded-xl text-white font-bold shadow-lg relative z-10">前往练习</button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 按文章ID分组
+            const grouped = {};
+            Wronganswer.forEach(item => {
+                if (!grouped[item.articleId]) {
+                    grouped[item.articleId] = [];
+                }
+                grouped[item.articleId].push(item);
+            });
+            
+            // 按文章ID排序
+            const sortedArticleIds = Object.keys(grouped).sort((a, b) => parseInt(a) - parseInt(b));
+            
+            let html = '';
+            sortedArticleIds.forEach(articleId => {
+                const items = grouped[articleId];
+                html += `
+                    <div class="glass-card rounded-xl p-5 mb-4 page-transition error-card">
+                        <div class="flex items-center gap-2 mb-4 pb-3 border-b border-slate-100">
+                            <span class="px-2 py-1 bg-sky-100 text-sky-700 rounded text-xs font-bold border border-sky-200">Article ${articleId}</span>
+                            <h3 class="font-bold text-slate-800 text-lg line-clamp-1">${items[0].articleTitle}</h3>
+                            <span class="ml-auto text-xs text-slate-400 bg-slate-50 px-2 py-1 rounded-full">${items.length} 道错题</span>
+                        </div>
+                        <div class="space-y-3">
+                            ${items.map(item => `
+                                <div class="bg-white rounded-lg p-4 border-l-4 border-rose-400 shadow-sm">
+                                    <div class="flex items-start gap-3">
+                                        <span class="flex-shrink-0 w-8 h-8 bg-rose-100 text-rose-600 rounded-full flex items-center justify-center text-sm font-bold">${item.questionNumber}</span>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="text-slate-800 font-medium mb-3 leading-relaxed">${item.questionText}</p>
+                                            <div class="flex flex-wrap gap-3 text-sm">
+                                                <div class="px-3 py-1.5 bg-red-50 text-red-700 rounded-lg border border-red-100">
+                                                    <span class="text-red-400 mr-1 text-xs">你的答案:</span>
+                                                    <span class="font-semibold">${item.userAnswer}</span>
+                                                </div>
+                                                <div class="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100">
+                                                    <span class="text-emerald-500 mr-1 text-xs">正确答案:</span>
+                                                    <span class="font-semibold">${item.correctAnswer}</span>
+                                                </div>
+                                                <div class="px-3 py-1.5 bg-slate-50 text-slate-600 rounded-lg border border-slate-100 text-xs flex items-center font-medium">
+                                                    ${item.questionType === 'true-false' ? '判断题' : item.questionType === 'blank' ? '填空题' : '选择题'}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function clearWrongAnswers() {
+            if (confirm('确定要清空所有错题记录吗？此操作不可恢复。')) {
+                WrongAnswerManager.clearWrongAnswers();
+                renderErrorBook();
+                showToast('🗑️', '错题本已清空');
+            }
         }
 
         function renderPracticeList() {
@@ -2959,6 +3147,7 @@
 
         // ========== 初始化（已修正：页面加载时立即刷新正确率） ==========
         updateAuthArea();
+        WrongAnswerManager.getWrongAnswers(); // 初始化错题数组
         UserProgress.updateAccuracyDisplay(); // 确保未登录时显示 "--"，已登录时显示实际正确率
         renderContent();
 
