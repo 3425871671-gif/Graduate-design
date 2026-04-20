@@ -651,7 +651,8 @@
                     <!-- 平均正确率：点击跳转到错题本 -->
                     <div class="glass-card rounded-xl p-4 text-center hover:shadow-lg transition-shadow cursor-pointer hover:bg-sky-50/50" 
                          title="基于您所有做题记录计算" 
-                         onclick="switchView('error-book')">
+                         onclick="AuthManager.isLoggedIn() ? 
+                         switchView('error-book') : showLoginModal()">
                         <div class="text-2xl font-bold text-sky-600 mb-1" id="userAccuracy">--</div>
                         <div class="text-xs text-slate-500">平均正确率</div>
                         <div class="text-[10px] text-slate-400 mt-1" id="attemptCount">已完成 0 篇</div>
